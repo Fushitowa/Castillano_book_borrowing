@@ -7,6 +7,10 @@ export const initialBooks: Book[] = [
   { id: 'b4', title: 'The Midnight Library', author: 'Matt Haig', category: 'Fiction', isbn: '978-0525559474', cover: 'https://covers.openlibrary.org/b/isbn/9780525559474-L.jpg', color: '#acb5cd', total_copies: 10, available_copies: 9 },
   { id: 'b5', title: 'Thinking, Fast and Slow', author: 'Daniel Kahneman', category: 'Psychology', isbn: '978-0374533557', cover: 'https://covers.openlibrary.org/b/isbn/9780374533557-L.jpg', color: '#e6d2b1', total_copies: 6, available_copies: 5 },
   { id: 'b6', title: 'Maybe You Should Talk to Someone', author: 'Lori Gottlieb', category: 'Psychology', isbn: '978-1328662057', cover: 'https://covers.openlibrary.org/b/isbn/9781328662057-L.jpg', color: '#d5b7ad', total_copies: 9, available_copies: 8 },
+  { id: 'b7', title: 'The Hobbit', author: 'J.R.R. Tolkien', category: 'Fantasy', isbn: '9780547928227', cover: 'https://covers.openlibrary.org/b/isbn/9780547928227-L.jpg', color: '#bfd0ad', total_copies: 8, available_copies: 8 },
+  { id: 'b8', title: 'Pride and Prejudice', author: 'Jane Austen', category: 'Classics', isbn: '9780141439518', cover: 'https://covers.openlibrary.org/b/isbn/9780141439518-L.jpg', color: '#d9c3ce', total_copies: 5, available_copies: 5 },
+  { id: 'b9', title: 'The Book Thief', author: 'Markus Zusak', category: 'Historical fiction', isbn: '9780375842207', cover: 'https://covers.openlibrary.org/b/isbn/9780375842207-L.jpg', color: '#c6c8ce', total_copies: 6, available_copies: 6 },
+  { id: 'b10', title: 'The Alchemist', author: 'Paulo Coelho', category: 'Fiction', isbn: '9780062315007', cover: 'https://covers.openlibrary.org/b/isbn/9780062315007-L.jpg', color: '#dcc590', total_copies: 7, available_copies: 7 },
 ]
 
 export const initialBorrowers: Borrower[] = [

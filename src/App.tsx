@@ -17,6 +17,7 @@ function App() {
   const [authReady, setAuthReady] = useState(!supabase)
   const [authSubmitting, setAuthSubmitting] = useState(false)
   const [authError, setAuthError] = useState('')
+  const [authSuccess, setAuthSuccess] = useState('')
   const [page, setPage] = useState<Page>('Overview')
   const [books, setBooks] = useState(initialBooks)
   const [borrowers, setBorrowers] = useState(initialBorrowers)
@@ -32,10 +33,11 @@ function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
-    if (!supabase) return
+    const authClient = supabase
+    if (!authClient) return
     let mounted = true
     const initializeAuth = async () => {
-      const { data, error } = await supabase.auth.getSession()
+      const { data, error } = await authClient.auth.getSession()
       if (!mounted) return
       if (error) setAuthError(error.message)
       if (data.session) {
@@ -46,7 +48,7 @@ function App() {
       setAuthReady(true)
     }
     void initializeAuth()
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    const { data: { subscription } } = authClient.auth.onAuthStateChange((_event, nextSession) => {
       if (!mounted) return
       setSession(nextSession)
       if (!nextSession) {
@@ -140,7 +142,7 @@ function App() {
 
   const signIn = async (email: string, password: string) => {
     if (!supabase) return
-    setAuthSubmitting(true); setAuthError('')
+    setAuthSubmitting(true); setAuthError(''); setAuthSuccess('')
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) throw error
@@ -151,7 +153,23 @@ function App() {
       setAuthError(error instanceof Error ? error.message : 'Could not sign in. Check your email and password.')
     } finally { setAuthSubmitting(false) }
   }
-  const signInDemo = (role: StaffRole) => { setAuthError(''); setStaff(demoProfile(role)) }
+  const signUp = async (fullName: string, email: string, password: string) => {
+    if (!supabase) return
+    setAuthSubmitting(true); setAuthError(''); setAuthSuccess('')
+    try {
+      const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName } } })
+      if (error) throw error
+      if (data.session && data.user) {
+        const profile = await loadStaffProfile(data.user.id)
+        setSession(data.session); setStaff(profile)
+      } else {
+        setAuthSuccess('Account created. Check your email to confirm it, then sign in.')
+      }
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : 'Could not create your account. Please try again.')
+    } finally { setAuthSubmitting(false) }
+  }
+  const signInDemo = (role: StaffRole) => { setAuthError(''); setAuthSuccess(''); setStaff(demoProfile(role)) }
   const signOut = async () => {
     if (supabase) {
       const { error } = await supabase.auth.signOut()
@@ -164,7 +182,7 @@ function App() {
   const beginCheckout = (bookId = '') => { setSelectedBook(bookId); setSelectedBorrower(''); setModal(true) }
 
   if (!authReady) return <div className="auth-loading"><img src="/jireh-library-logo.jpg" alt="Jireh Library" /><span>Opening your library desk…</span></div>
-  if (!staff) return <LoginScreen connected={Boolean(supabase)} loading={authSubmitting} error={authError} onSignIn={signIn} onDemoSignIn={signInDemo} />
+  if (!staff) return <LoginScreen connected={Boolean(supabase)} loading={authSubmitting} error={authError} success={authSuccess} onSignIn={signIn} onSignUp={signUp} onDemoSignIn={signInDemo} />
 
   const staffInitials = staff.full_name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase()
 

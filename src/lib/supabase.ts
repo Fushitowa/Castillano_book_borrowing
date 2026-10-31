@@ -2,12 +2,12 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import type { Book, Borrower, Loan, StaffProfile } from '../types'
 
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
-const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
+const key = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY) as string | undefined
 export const supabase: SupabaseClient | null = url && key ? createClient(url, key) : null
 
 export async function loadStaffProfile(userId: string): Promise<StaffProfile> {
   if (!supabase) throw new Error('Supabase is not configured')
-  const { data, error } = await supabase.from('user_profiles').select('id, full_name, role').eq('id', userId).single()
+  const { data, error } = await supabase.from('users').select('id, full_name, role, email').eq('id', userId).single()
   if (error) throw error
   return data as StaffProfile
 }
