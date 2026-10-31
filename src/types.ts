@@ -3,8 +3,8 @@ export type Book = {
   title: string
   author: string
   category: string
-  isbn: string
-  cover: string
+  isbn: string | null
+  cover: string | null
   color: string
   total_copies: number
   available_copies: number
@@ -17,6 +17,7 @@ export type Borrower = {
   email: string
   initials: string
   color: string
+  is_active?: boolean
 }
 
 export type Loan = {
@@ -37,4 +38,30 @@ export type StaffProfile = {
   full_name: string
   role: StaffRole
   email?: string
+}
+
+export type BorrowRequest = {
+  id: string
+  book_id: string
+  customer_name: string
+  customer_email: string
+  status: 'pending' | 'approved' | 'rejected'
+  requested_at: string
+  reviewed_at?: string | null
+  reviewed_by?: string | null
+  loan_id?: string | null
+  book?: Pick<Book, 'id' | 'title' | 'author' | 'cover' | 'color'>
+}
+
+export type ReturnRequest = {
+  id: string
+  book_id: string
+  customer_name: string
+  customer_email: string
+  status: 'pending' | 'approved' | 'rejected'
+  requested_at: string
+  reviewed_at?: string | null
+  reviewed_by?: string | null
+  loan_id?: string | null
+  book?: Pick<Book, 'id' | 'title' | 'author' | 'cover' | 'color'>
 }

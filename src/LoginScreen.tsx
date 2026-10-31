@@ -4,16 +4,18 @@ import type { StaffProfile, StaffRole } from './types'
 
 type Props = {
   connected: boolean
+  adminSetupAvailable: boolean
   loading: boolean
   error: string
   success: string
-  onSignIn: (email: string, password: string) => Promise<void>
+  onSignIn: (email: string, password: string, role: StaffRole) => Promise<void>
   onSignUp: (fullName: string, email: string, password: string) => Promise<void>
   onDemoSignIn: (role: StaffRole) => void
 }
 
-export default function LoginScreen({ connected, loading, error, success, onSignIn, onSignUp, onDemoSignIn }: Props) {
+export default function LoginScreen({ connected, adminSetupAvailable, loading, error, success, onSignIn, onSignUp, onDemoSignIn }: Props) {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
+  const [loginRole, setLoginRole] = useState<StaffRole>('admin')
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -25,7 +27,7 @@ export default function LoginScreen({ connected, loading, error, success, onSign
     if (mode === 'signup') {
       if (password !== confirmPassword) { setFormError('Your passwords do not match.'); return }
       void onSignUp(fullName.trim(), email.trim(), password)
-    } else void onSignIn(email.trim(), password)
+    } else void onSignIn(email.trim(), password, loginRole)
   }
   const switchMode = () => { setMode((current) => current === 'signin' ? 'signup' : 'signin'); setFormError('') }
 
@@ -39,15 +41,16 @@ export default function LoginScreen({ connected, loading, error, success, onSign
     <section className="login-form-panel"><div className="login-card">
       <div className="login-mobile-logo"><img src="/jireh-library-logo.jpg" alt="Jireh Library" /></div>
       <span className="login-small-kicker"><LockKeyhole size={14} /> STAFF PORTAL</span>
-      <h2>{mode === 'signin' ? 'Welcome back' : 'Create your account'}</h2><p className="login-intro">{mode === 'signin' ? 'Sign in to your library workspace.' : 'Set up your librarian account to get started.'}</p>
+      <h2>{mode === 'signin' ? loginRole === 'admin' ? 'Admin sign in' : 'Librarian sign in' : adminSetupAvailable ? 'Create Admin account' : 'Create your account'}</h2><p className="login-intro">{mode === 'signin' ? 'Sign in with your staff account.' : adminSetupAvailable ? 'Set up the first administrator for this library.' : 'Create a librarian account for your library workspace.'}</p>
+      {connected && mode === 'signin' && <div className="login-role-switch" aria-label="Choose sign-in role"><button type="button" className={loginRole === 'admin' ? 'selected' : ''} onClick={() => setLoginRole('admin')}><ShieldCheck size={14} /> Admin</button><button type="button" className={loginRole === 'librarian' ? 'selected' : ''} onClick={() => setLoginRole('librarian')}><UserRound size={14} /> Librarian</button></div>}
       {connected ? <form className="login-form" onSubmit={submit}>
         {mode === 'signup' && <><label htmlFor="staff-name">Full name</label><div className="login-input"><UserRound size={17} /><input autoComplete="name" id="staff-name" type="text" placeholder="Your name" value={fullName} onChange={(event) => setFullName(event.target.value)} required maxLength={80} /></div></>}
         <label htmlFor="staff-email">Email address</label><div className="login-input"><Mail size={17} /><input autoComplete="username" id="staff-email" type="email" placeholder="you@jirehlibrary.org" value={email} onChange={(event) => setEmail(event.target.value)} required /></div>
         <div className="password-label-row"><label htmlFor="staff-password">Password</label>{mode === 'signin' && <span><KeyRound size={12} /> Secure staff sign-in</span>}</div><div className="login-input"><LockKeyhole size={17} /><input autoComplete={mode === 'signin' ? 'current-password' : 'new-password'} id="staff-password" type="password" placeholder={mode === 'signin' ? 'Enter your password' : 'Create a password'} value={password} onChange={(event) => setPassword(event.target.value)} required minLength={8} /></div>
         {mode === 'signup' && <><label htmlFor="confirm-password">Confirm password</label><div className="login-input"><LockKeyhole size={17} /><input autoComplete="new-password" id="confirm-password" type="password" placeholder="Re-enter your password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} required minLength={8} /></div></>}
         {formError && <div className="login-error" role="alert">{formError}</div>}{error && <div className="login-error" role="alert">{error}</div>}{success && <div className="login-success" role="status">{success}</div>}
-        <button className="login-submit" type="submit" disabled={loading}>{loading ? 'Please wait…' : <>{mode === 'signin' ? 'Sign in' : 'Create account'} <ArrowRight size={16} /></>}</button>
-        <p className="login-note"><ShieldCheck size={14} /> New accounts receive the librarian role by default.</p>
+        <button className="login-submit" type="submit" disabled={loading}>{loading ? 'Please wait…' : <>{mode === 'signin' ? `Sign in as ${loginRole === 'admin' ? 'Admin' : 'Librarian'}` : adminSetupAvailable ? 'Create Admin account' : 'Create Librarian account'} <ArrowRight size={16} /></>}</button>
+        <p className="login-note"><ShieldCheck size={14} />{mode === 'signup' && adminSetupAvailable ? 'The first account will receive Admin access.' : 'New accounts receive the Librarian role by default.'}</p>
       </form> : <div className="demo-access">
         <div className="demo-notice"><span className="demo-dot" /><span>Demo mode is on. Connect Supabase to use secure staff accounts.</span></div>
         {error && <div className="login-error" role="alert">{error}</div>}
@@ -56,7 +59,8 @@ export default function LoginScreen({ connected, loading, error, success, onSign
         <button className="demo-role-button" onClick={() => onDemoSignIn('librarian')}><span className="demo-role-icon librarian"><UserRound size={17} /></span><span><strong>Librarian</strong><small>Manage checkouts and returns</small></span><ArrowRight size={16} /></button>
         <p className="login-note"><ShieldCheck size={14} /> Demo access is stored only in this browser session.</p>
       </div>}
-      <div className="login-bottom">{connected ? <><span>{mode === 'signin' ? 'New to the library desk?' : 'Already have an account?'}</span><button type="button" onClick={switchMode}>{mode === 'signin' ? 'Create an account' : 'Sign in instead'}</button></> : <><span>Need an account?</span><span>Connect Supabase to register</span></>}</div>
+      <div className="login-bottom">{connected ? <><span>{mode === 'signin' ? 'New to the library desk?' : 'Already have an account?'}</span><button type="button" onClick={switchMode}>{mode === 'signin' ? adminSetupAvailable ? 'Set up first Admin' : 'Create an account' : 'Sign in instead'}</button></> : <><span>Need an account?</span><span>Connect Supabase to register</span></>}</div>
+      {connected && <a className="login-customer-link" href="/customer">Browse books as a customer <ArrowRight size={13} /></a>}
     </div><div className="login-copyright">© {new Date().getFullYear()} Jireh Library <span>·</span> Provision of Knowledge</div></section>
   </main>
 }
