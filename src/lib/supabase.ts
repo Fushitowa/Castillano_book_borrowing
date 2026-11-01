@@ -48,11 +48,13 @@ export async function loadPublicBooks(): Promise<Book[]> {
   return data as Book[]
 }
 
-export async function submitBorrowRequest(customerName: string, customerEmail: string, bookId: string) {
+export async function submitBorrowRequest(customerName: string, customerEmail: string, customerAddress: string, requestedDays: number, bookId: string) {
   if (!supabase) throw new Error('The library request service is unavailable right now.')
   const { error } = await supabase.rpc('customer_submit_borrow_request', {
     p_customer_name: customerName,
     p_customer_email: customerEmail,
+    p_customer_address: customerAddress,
+    p_requested_days: requestedDays,
     p_book_id: bookId,
   })
   if (error) throw error
@@ -160,12 +162,6 @@ export async function createAdminAccount(fullName: string, email: string, passwo
   const { error: roleError } = await supabase.rpc('admin_promote_staff_to_admin', { p_user_id: data.user.id })
   if (roleError) throw roleError
   return { confirmationRequired: !data.session }
-}
-
-export async function createLoan(bookId: string, borrowerId: string, dueAt: string) {
-  if (!supabase) return null
-  const { error } = await supabase.rpc('borrow_book', { p_book_id: bookId, p_borrower_id: borrowerId, p_due_at: dueAt })
-  if (error) throw error
 }
 
 export async function returnLoan(loanId: string) {

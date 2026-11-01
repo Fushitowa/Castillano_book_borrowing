@@ -60,7 +60,7 @@ export default function LoginScreen({ connected, adminSetupAvailable, loading, e
         <p className="login-note"><ShieldCheck size={14} /> Demo access is stored only in this browser session.</p>
       </div>}
       <div className="login-bottom">{connected ? <><span>{mode === 'signin' ? 'New to the library desk?' : 'Already have an account?'}</span><button type="button" onClick={switchMode}>{mode === 'signin' ? adminSetupAvailable ? 'Set up first Admin' : 'Create an account' : 'Sign in instead'}</button></> : <><span>Need an account?</span><span>Connect Supabase to register</span></>}</div>
-      {connected && <a className="login-customer-link" href="/customer">Browse books as a customer <ArrowRight size={13} /></a>}
+      <a className="login-customer-link" href="/customer"><span className="login-customer-icon"><BookOpen size={18} /></span><span className="login-customer-copy"><strong>Browse as a customer</strong><small>Explore books and request a loan without an account</small></span><ArrowRight className="login-customer-arrow" size={18} /></a>
     </div><div className="login-copyright">© {new Date().getFullYear()} Jireh Library <span>·</span> Provision of Knowledge</div></section>
   </main>
 }

@@ -1,32 +1,24 @@
 import type { Book, Borrower, Loan } from './types'
 
-export const initialBooks: Book[] = [
-  { id: 'b1', title: 'The Creative Act', author: 'Rick Rubin', category: 'Creativity', isbn: '978-0593652886', cover: 'https://covers.openlibrary.org/b/isbn/9780593652886-L.jpg', color: '#dec8b4', total_copies: 8, available_copies: 7 },
-  { id: 'b2', title: 'Atomic Habits', author: 'James Clear', category: 'Self growth', isbn: '978-0735211292', cover: 'https://covers.openlibrary.org/b/isbn/9780735211292-L.jpg', color: '#d5e3f6', total_copies: 12, available_copies: 11 },
-  { id: 'b3', title: 'Educated', author: 'Tara Westover', category: 'Memoir', isbn: '978-0399590504', cover: 'https://covers.openlibrary.org/b/isbn/9780399590504-L.jpg', color: '#b9c2b6', total_copies: 7, available_copies: 6 },
-  { id: 'b4', title: 'The Midnight Library', author: 'Matt Haig', category: 'Fiction', isbn: '978-0525559474', cover: 'https://covers.openlibrary.org/b/isbn/9780525559474-L.jpg', color: '#acb5cd', total_copies: 10, available_copies: 9 },
-  { id: 'b5', title: 'Thinking, Fast and Slow', author: 'Daniel Kahneman', category: 'Psychology', isbn: '978-0374533557', cover: 'https://covers.openlibrary.org/b/isbn/9780374533557-L.jpg', color: '#e6d2b1', total_copies: 6, available_copies: 5 },
-  { id: 'b6', title: 'Maybe You Should Talk to Someone', author: 'Lori Gottlieb', category: 'Psychology', isbn: '978-1328662057', cover: 'https://covers.openlibrary.org/b/isbn/9781328662057-L.jpg', color: '#d5b7ad', total_copies: 9, available_copies: 8 },
-  { id: 'b7', title: 'The Hobbit', author: 'J.R.R. Tolkien', category: 'Fantasy', isbn: '9780547928227', cover: 'https://covers.openlibrary.org/b/isbn/9780547928227-L.jpg', color: '#bfd0ad', total_copies: 8, available_copies: 8 },
-  { id: 'b8', title: 'Pride and Prejudice', author: 'Jane Austen', category: 'Classics', isbn: '9780141439518', cover: 'https://covers.openlibrary.org/b/isbn/9780141439518-L.jpg', color: '#d9c3ce', total_copies: 5, available_copies: 5 },
-  { id: 'b9', title: 'The Book Thief', author: 'Markus Zusak', category: 'Historical fiction', isbn: '9780375842207', cover: 'https://covers.openlibrary.org/b/isbn/9780375842207-L.jpg', color: '#c6c8ce', total_copies: 6, available_copies: 6 },
-  { id: 'b10', title: 'The Alchemist', author: 'Paulo Coelho', category: 'Fiction', isbn: '9780062315007', cover: 'https://covers.openlibrary.org/b/isbn/9780062315007-L.jpg', color: '#dcc590', total_copies: 7, available_copies: 7 },
+export const libraryCatalogBooks: Book[] = [
+  { id: '00000000-0000-4000-8000-000000000001', title: 'The Creative Act', author: 'Rick Rubin', category: 'Creativity', isbn: '978-0593652886', cover: 'https://covers.openlibrary.org/b/isbn/9780593652886-L.jpg', color: '#dec8b4', total_copies: 8, available_copies: 8 },
+  { id: '00000000-0000-4000-8000-000000000002', title: 'Atomic Habits', author: 'James Clear', category: 'Self growth', isbn: '978-0735211292', cover: 'https://covers.openlibrary.org/b/isbn/9780735211292-L.jpg', color: '#d5e3f6', total_copies: 12, available_copies: 12 },
+  { id: '00000000-0000-4000-8000-000000000003', title: 'Educated', author: 'Tara Westover', category: 'Memoir', isbn: '978-0399590504', cover: 'https://covers.openlibrary.org/b/isbn/9780399590504-L.jpg', color: '#b9c2b6', total_copies: 7, available_copies: 7 },
+  { id: '00000000-0000-4000-8000-000000000004', title: 'The Midnight Library', author: 'Matt Haig', category: 'Fiction', isbn: '978-0525559474', cover: 'https://covers.openlibrary.org/b/isbn/9780525559474-L.jpg', color: '#acb5cd', total_copies: 10, available_copies: 10 },
+  { id: '00000000-0000-4000-8000-000000000005', title: 'Thinking, Fast and Slow', author: 'Daniel Kahneman', category: 'Psychology', isbn: '978-0374533557', cover: 'https://covers.openlibrary.org/b/isbn/9780374533557-L.jpg', color: '#e6d2b1', total_copies: 6, available_copies: 6 },
+  { id: '00000000-0000-4000-8000-000000000006', title: 'Maybe You Should Talk to Someone', author: 'Lori Gottlieb', category: 'Psychology', isbn: '978-1328662057', cover: 'https://covers.openlibrary.org/b/isbn/9781328662057-L.jpg', color: '#d5b7ad', total_copies: 9, available_copies: 9 },
+  { id: '00000000-0000-4000-8000-000000000007', title: 'The Hobbit', author: 'J.R.R. Tolkien', category: 'Fantasy', isbn: '9780547928227', cover: 'https://covers.openlibrary.org/b/isbn/9780547928227-L.jpg', color: '#bfd0ad', total_copies: 8, available_copies: 8 },
+  { id: '00000000-0000-4000-8000-000000000008', title: 'Pride and Prejudice', author: 'Jane Austen', category: 'Classics', isbn: '9780141439518', cover: 'https://covers.openlibrary.org/b/isbn/9780141439518-L.jpg', color: '#d9c3ce', total_copies: 5, available_copies: 5 },
+  { id: '00000000-0000-4000-8000-000000000009', title: 'The Book Thief', author: 'Markus Zusak', category: 'Historical fiction', isbn: '9780375842207', cover: 'https://covers.openlibrary.org/b/isbn/9780375842207-L.jpg', color: '#c6c8ce', total_copies: 6, available_copies: 6 },
+  { id: '00000000-0000-4000-8000-000000000010', title: 'The Alchemist', author: 'Paulo Coelho', category: 'Fiction', isbn: '9780062315007', cover: 'https://covers.openlibrary.org/b/isbn/9780062315007-L.jpg', color: '#dcc590', total_copies: 7, available_copies: 7 },
+  { id: '00000000-0000-4000-8000-000000000101', title: 'Naruto, Vol. 1', author: 'Masashi Kishimoto', category: 'Manga', isbn: '9781569319000', cover: 'https://covers.openlibrary.org/b/isbn/9781569319000-L.jpg', color: '#f4d6a2', total_copies: 3, available_copies: 3 },
+  { id: '00000000-0000-4000-8000-000000000102', title: 'One Piece, Vol. 1', author: 'Eiichiro Oda', category: 'Manga', isbn: '9781569319017', cover: 'https://covers.openlibrary.org/b/isbn/9781569319017-L.jpg', color: '#d5e6f5', total_copies: 3, available_copies: 3 },
+  { id: '00000000-0000-4000-8000-000000000103', title: 'Jujutsu Kaisen, Vol. 1', author: 'Gege Akutami', category: 'Manga', isbn: '9781974710027', cover: 'https://covers.openlibrary.org/b/isbn/9781974710027-L.jpg', color: '#d8d2ed', total_copies: 3, available_copies: 3 },
+  { id: '00000000-0000-4000-8000-000000000104', title: 'Demon Slayer: Kimetsu no Yaiba, Vol. 1', author: 'Koyoharu Gotouge', category: 'Manga', isbn: '9781974700523', cover: 'https://covers.openlibrary.org/b/isbn/9781974700523-L.jpg', color: '#c9e0cf', total_copies: 3, available_copies: 3 },
+  { id: '00000000-0000-4000-8000-000000000105', title: 'My Hero Academia, Vol. 1', author: 'Kohei Horikoshi', category: 'Manga', isbn: '9781421582696', cover: 'https://covers.openlibrary.org/b/isbn/9781421582696-L.jpg', color: '#e5e2b8', total_copies: 3, available_copies: 3 },
+  { id: '00000000-0000-4000-8000-000000000106', title: 'Spy x Family, Vol. 1', author: 'Tatsuya Endo', category: 'Manga', isbn: '9781974715466', cover: 'https://covers.openlibrary.org/b/isbn/9781974715466-L.jpg', color: '#ecd8bf', total_copies: 3, available_copies: 3 },
+  { id: '00000000-0000-4000-8000-000000000107', title: 'Attack on Titan, Vol. 1', author: 'Hajime Isayama', category: 'Manga', isbn: '9781612620244', cover: 'https://covers.openlibrary.org/b/isbn/9781612620244-L.jpg', color: '#bdc7d2', total_copies: 3, available_copies: 3 },
 ]
 
-export const initialBorrowers: Borrower[] = [
-  { id: 'm1', name: 'Olivia Rhye', email: 'olivia.rhye@email.com', initials: 'OR', color: 'lavender' },
-  { id: 'm2', name: 'Phoenix Baker', email: 'phoenix.baker@email.com', initials: 'PB', color: 'peach' },
-  { id: 'm3', name: 'Lana Steiner', email: 'lana.steiner@email.com', initials: 'LS', color: 'mint' },
-  { id: 'm4', name: 'Demi Wilkinson', email: 'demi.wilkinson@email.com', initials: 'DW', color: 'blue' },
-  { id: 'm5', name: 'Candice Wu', email: 'candice.wu@email.com', initials: 'CW', color: 'pink' },
-]
-
-const day = (offset: number) => { const d = new Date(); d.setDate(d.getDate() + offset); return d.toISOString() }
-export const initialLoans: Loan[] = [
-  { id: 'l1', book_id: 'b1', borrower_id: 'm1', status: 'borrowed', borrowed_at: day(-7), due_at: day(7) },
-  { id: 'l2', book_id: 'b2', borrower_id: 'm2', status: 'borrowed', borrowed_at: day(-12), due_at: day(-2) },
-  { id: 'l3', book_id: 'b3', borrower_id: 'm3', status: 'borrowed', borrowed_at: day(-5), due_at: day(9) },
-  { id: 'l4', book_id: 'b4', borrower_id: 'm4', status: 'borrowed', borrowed_at: day(-3), due_at: day(11) },
-  { id: 'l5', book_id: 'b5', borrower_id: 'm5', status: 'borrowed', borrowed_at: day(-10), due_at: day(4) },
-  { id: 'l6', book_id: 'b6', borrower_id: 'm1', status: 'borrowed', borrowed_at: day(-4), due_at: day(10) },
-]
+export const initialBorrowers: Borrower[] = []
+export const initialLoans: Loan[] = []

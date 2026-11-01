@@ -48,12 +48,17 @@ create table if not exists public.borrow_requests (
   book_id uuid not null references public.books(id) on delete restrict,
   customer_name text not null,
   customer_email text not null,
+  customer_address text not null default '',
+  requested_days integer not null default 14 check (requested_days between 1 and 30),
   status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
   requested_at timestamptz not null default now(),
   reviewed_at timestamptz,
   reviewed_by uuid references auth.users(id) on delete set null,
   loan_id uuid references public.loans(id) on delete set null
 );
+
+alter table public.borrow_requests add column if not exists customer_address text not null default '';
+alter table public.borrow_requests add column if not exists requested_days integer not null default 14 check (requested_days between 1 and 30);
 
 create table if not exists public.return_requests (
   id uuid primary key default gen_random_uuid(),
@@ -177,7 +182,8 @@ begin
   update books set available_copies = least(total_copies, available_copies + 1) where id = returned_book_id;
 end; $$;
 
-create or replace function public.customer_submit_borrow_request(p_customer_name text, p_customer_email text, p_book_id uuid)
+drop function if exists public.customer_submit_borrow_request(text, text, uuid);
+create or replace function public.customer_submit_borrow_request(p_customer_name text, p_customer_email text, p_customer_address text, p_requested_days integer, p_book_id uuid)
 returns uuid language plpgsql security definer set search_path = public as $$
 declare request_id uuid; pending_count integer;
 begin
@@ -188,14 +194,20 @@ begin
      or trim(p_customer_email) !~* '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$' then
     raise exception 'Enter a valid email address';
   end if;
+  if nullif(trim(p_customer_address), '') is null or length(trim(p_customer_address)) > 300 then
+    raise exception 'Enter your address (up to 300 characters)';
+  end if;
+  if p_requested_days is null or p_requested_days < 1 or p_requested_days > 30 then
+    raise exception 'Choose a borrowing period from 1 to 30 days';
+  end if;
   if not exists(select 1 from books where id = p_book_id and available_copies > 0) then
     raise exception 'This book is currently unavailable';
   end if;
   select count(*) into pending_count from borrow_requests
   where lower(customer_email) = lower(trim(p_customer_email)) and status = 'pending';
   if pending_count >= 10 then raise exception 'You already have several requests awaiting review'; end if;
-  insert into borrow_requests(book_id, customer_name, customer_email)
-  values (p_book_id, trim(p_customer_name), lower(trim(p_customer_email))) returning id into request_id;
+  insert into borrow_requests(book_id, customer_name, customer_email, customer_address, requested_days)
+  values (p_book_id, trim(p_customer_name), lower(trim(p_customer_email)), trim(p_customer_address), p_requested_days) returning id into request_id;
   return request_id;
 end; $$;
 
@@ -234,7 +246,7 @@ begin
   )
   on conflict(email) do update set is_active = true
   returning id into borrower_id;
-  new_loan_id := public.borrow_book(request_row.book_id, borrower_id, now() + interval '14 days');
+  new_loan_id := public.borrow_book(request_row.book_id, borrower_id, now() + make_interval(days => request_row.requested_days));
   update borrow_requests set status = 'approved', reviewed_at = now(), reviewed_by = auth.uid(), loan_id = new_loan_id where id = p_request_id;
   return new_loan_id;
 end; $$;
@@ -348,35 +360,26 @@ begin
   if auth.uid() is null or not public.is_library_staff() then raise exception 'Staff sign-in is required'; end if;
   if exists(select 1 from books limit 1) then return 0; end if;
   insert into books (id, title, author, category, isbn, cover, color, total_copies, available_copies) values
-    ('00000000-0000-4000-8000-000000000001', 'The Creative Act', 'Rick Rubin', 'Creativity', '978-0593652886', 'https://covers.openlibrary.org/b/isbn/9780593652886-L.jpg', '#dec8b4', 8, 7),
-    ('00000000-0000-4000-8000-000000000002', 'Atomic Habits', 'James Clear', 'Self growth', '978-0735211292', 'https://covers.openlibrary.org/b/isbn/9780735211292-L.jpg', '#d5e3f6', 12, 11),
-    ('00000000-0000-4000-8000-000000000003', 'Educated', 'Tara Westover', 'Memoir', '978-0399590504', 'https://covers.openlibrary.org/b/isbn/9780399590504-L.jpg', '#b9c2b6', 7, 6),
-    ('00000000-0000-4000-8000-000000000004', 'The Midnight Library', 'Matt Haig', 'Fiction', '978-0525559474', 'https://covers.openlibrary.org/b/isbn/9780525559474-L.jpg', '#acb5cd', 10, 9),
-    ('00000000-0000-4000-8000-000000000005', 'Thinking, Fast and Slow', 'Daniel Kahneman', 'Psychology', '978-0374533557', 'https://covers.openlibrary.org/b/isbn/9780374533557-L.jpg', '#e6d2b1', 6, 5),
-    ('00000000-0000-4000-8000-000000000006', 'Maybe You Should Talk to Someone', 'Lori Gottlieb', 'Psychology', '978-1328662057', 'https://covers.openlibrary.org/b/isbn/9781328662057-L.jpg', '#d5b7ad', 9, 8),
+    ('00000000-0000-4000-8000-000000000001', 'The Creative Act', 'Rick Rubin', 'Creativity', '978-0593652886', 'https://covers.openlibrary.org/b/isbn/9780593652886-L.jpg', '#dec8b4', 8, 8),
+    ('00000000-0000-4000-8000-000000000002', 'Atomic Habits', 'James Clear', 'Self growth', '978-0735211292', 'https://covers.openlibrary.org/b/isbn/9780735211292-L.jpg', '#d5e3f6', 12, 12),
+    ('00000000-0000-4000-8000-000000000003', 'Educated', 'Tara Westover', 'Memoir', '978-0399590504', 'https://covers.openlibrary.org/b/isbn/9780399590504-L.jpg', '#b9c2b6', 7, 7),
+    ('00000000-0000-4000-8000-000000000004', 'The Midnight Library', 'Matt Haig', 'Fiction', '978-0525559474', 'https://covers.openlibrary.org/b/isbn/9780525559474-L.jpg', '#acb5cd', 10, 10),
+    ('00000000-0000-4000-8000-000000000005', 'Thinking, Fast and Slow', 'Daniel Kahneman', 'Psychology', '978-0374533557', 'https://covers.openlibrary.org/b/isbn/9780374533557-L.jpg', '#e6d2b1', 6, 6),
+    ('00000000-0000-4000-8000-000000000006', 'Maybe You Should Talk to Someone', 'Lori Gottlieb', 'Psychology', '978-1328662057', 'https://covers.openlibrary.org/b/isbn/9781328662057-L.jpg', '#d5b7ad', 9, 9),
     ('00000000-0000-4000-8000-000000000007', 'The Hobbit', 'J.R.R. Tolkien', 'Fantasy', '9780547928227', 'https://covers.openlibrary.org/b/isbn/9780547928227-L.jpg', '#bfd0ad', 8, 8),
     ('00000000-0000-4000-8000-000000000008', 'Pride and Prejudice', 'Jane Austen', 'Classics', '9780141439518', 'https://covers.openlibrary.org/b/isbn/9780141439518-L.jpg', '#d9c3ce', 5, 5),
     ('00000000-0000-4000-8000-000000000009', 'The Book Thief', 'Markus Zusak', 'Historical fiction', '9780375842207', 'https://covers.openlibrary.org/b/isbn/9780375842207-L.jpg', '#c6c8ce', 6, 6),
-    ('00000000-0000-4000-8000-000000000010', 'The Alchemist', 'Paulo Coelho', 'Fiction', '9780062315007', 'https://covers.openlibrary.org/b/isbn/9780062315007-L.jpg', '#dcc590', 7, 7)
+    ('00000000-0000-4000-8000-000000000010', 'The Alchemist', 'Paulo Coelho', 'Fiction', '9780062315007', 'https://covers.openlibrary.org/b/isbn/9780062315007-L.jpg', '#dcc590', 7, 7),
+    ('00000000-0000-4000-8000-000000000101', 'Naruto, Vol. 1', 'Masashi Kishimoto', 'Manga', '9781569319000', 'https://covers.openlibrary.org/b/isbn/9781569319000-L.jpg', '#f4d6a2', 3, 3),
+    ('00000000-0000-4000-8000-000000000102', 'One Piece, Vol. 1', 'Eiichiro Oda', 'Manga', '9781569319017', 'https://covers.openlibrary.org/b/isbn/9781569319017-L.jpg', '#d5e6f5', 3, 3),
+    ('00000000-0000-4000-8000-000000000103', 'Jujutsu Kaisen, Vol. 1', 'Gege Akutami', 'Manga', '9781974710027', 'https://covers.openlibrary.org/b/isbn/9781974710027-L.jpg', '#d8d2ed', 3, 3),
+    ('00000000-0000-4000-8000-000000000104', 'Demon Slayer: Kimetsu no Yaiba, Vol. 1', 'Koyoharu Gotouge', 'Manga', '9781974700523', 'https://covers.openlibrary.org/b/isbn/9781974700523-L.jpg', '#c9e0cf', 3, 3),
+    ('00000000-0000-4000-8000-000000000105', 'My Hero Academia, Vol. 1', 'Kohei Horikoshi', 'Manga', '9781421582696', 'https://covers.openlibrary.org/b/isbn/9781421582696-L.jpg', '#e5e2b8', 3, 3),
+    ('00000000-0000-4000-8000-000000000106', 'Spy x Family, Vol. 1', 'Tatsuya Endo', 'Manga', '9781974715466', 'https://covers.openlibrary.org/b/isbn/9781974715466-L.jpg', '#ecd8bf', 3, 3),
+    ('00000000-0000-4000-8000-000000000107', 'Attack on Titan, Vol. 1', 'Hajime Isayama', 'Manga', '9781612620244', 'https://covers.openlibrary.org/b/isbn/9781612620244-L.jpg', '#bdc7d2', 3, 3)
   on conflict (id) do nothing;
   get diagnostics inserted_count = row_count;
 
-  insert into borrowers (id, name, email, initials, color) values
-    ('00000000-0000-4000-8000-000000000011', 'Olivia Rhye', 'olivia.rhye@email.com', 'OR', 'lavender'),
-    ('00000000-0000-4000-8000-000000000012', 'Phoenix Baker', 'phoenix.baker@email.com', 'PB', 'peach'),
-    ('00000000-0000-4000-8000-000000000013', 'Lana Steiner', 'lana.steiner@email.com', 'LS', 'mint'),
-    ('00000000-0000-4000-8000-000000000014', 'Demi Wilkinson', 'demi.wilkinson@email.com', 'DW', 'blue'),
-    ('00000000-0000-4000-8000-000000000015', 'Candice Wu', 'candice.wu@email.com', 'CW', 'pink')
-  on conflict (id) do nothing;
-
-  insert into loans (id, book_id, borrower_id, status, borrowed_at, due_at) values
-    ('00000000-0000-4000-8000-000000000021', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000011', 'borrowed', now() - interval '7 days', now() + interval '7 days'),
-    ('00000000-0000-4000-8000-000000000022', '00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-000000000012', 'borrowed', now() - interval '12 days', now() - interval '2 days'),
-    ('00000000-0000-4000-8000-000000000023', '00000000-0000-4000-8000-000000000003', '00000000-0000-4000-8000-000000000013', 'borrowed', now() - interval '5 days', now() + interval '9 days'),
-    ('00000000-0000-4000-8000-000000000024', '00000000-0000-4000-8000-000000000004', '00000000-0000-4000-8000-000000000014', 'borrowed', now() - interval '3 days', now() + interval '11 days'),
-    ('00000000-0000-4000-8000-000000000025', '00000000-0000-4000-8000-000000000005', '00000000-0000-4000-8000-000000000015', 'borrowed', now() - interval '10 days', now() + interval '4 days'),
-    ('00000000-0000-4000-8000-000000000026', '00000000-0000-4000-8000-000000000006', '00000000-0000-4000-8000-000000000011', 'borrowed', now() - interval '4 days', now() + interval '10 days')
-  on conflict (id) do nothing;
   return inserted_count;
 end; $$;
 
@@ -417,7 +420,7 @@ grant select on table public.borrow_requests, public.return_requests to authenti
 revoke all on function public.is_library_staff() from public, anon;
 revoke all on function public.is_library_admin() from public, anon;
 revoke all on function public.admin_promote_staff_to_admin(uuid) from public, anon;
-revoke all on function public.customer_submit_borrow_request(text, text, uuid) from public;
+revoke all on function public.customer_submit_borrow_request(text, text, text, integer, uuid) from public;
 revoke all on function public.customer_submit_return_request(text, text, uuid) from public;
 revoke all on function public.staff_approve_borrow_request(uuid) from public, anon;
 revoke all on function public.staff_reject_borrow_request(uuid) from public, anon;
@@ -434,7 +437,7 @@ revoke all on function public.seed_demo_library() from public, anon;
 grant execute on function public.is_library_staff() to authenticated;
 grant execute on function public.is_library_admin() to authenticated;
 grant execute on function public.admin_promote_staff_to_admin(uuid) to authenticated;
-grant execute on function public.customer_submit_borrow_request(text, text, uuid) to anon, authenticated;
+grant execute on function public.customer_submit_borrow_request(text, text, text, integer, uuid) to anon, authenticated;
 grant execute on function public.customer_submit_return_request(text, text, uuid) to anon, authenticated;
 grant execute on function public.staff_approve_borrow_request(uuid) to authenticated;
 grant execute on function public.staff_reject_borrow_request(uuid) to authenticated;
